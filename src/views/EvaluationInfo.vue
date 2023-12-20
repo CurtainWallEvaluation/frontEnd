@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import {ref, watch, onMounted} from "vue";
 
 // 分块算法返回数据存储
 const tmpData = [
@@ -96,42 +96,63 @@ const tmpData = [
   },
 ]
 
+// 进入后初始化数据
+onMounted(() => {
+  //TODO：初始化分页数据，并从数据库中取得相关数据
+  currentPage.value = 1;
+  pageSize.value = 12;
+  total.value = tmpData.length;
+
+  linesCount.value = pageSize.value / lineSize.value
+
+})
+
 // 分块展示分页控制
 const currentPage = ref(0)
-const pageSize = ref(0)
 const total = ref(0)
+const pageSize = ref(10);
 
+function handlePageChange(newPage) {
+  // TODO:从数据库重新获取对应数量的分块数据
+}
+
+function handleSizeChange(newSize) {
+  // TODO:根据当前页大小，向数据库申请新的数据
+  linesCount.value = newSize/lineSize.value;
+}
+
+// 左侧分块展示行列控制
+const lineSize = ref(6);
+const linesCount = ref(2);
 
 // 右侧栏数据和界面控制
-const sideDiaStatus = ref(false)
+const sideDiaStatus = ref(true)
 const sideDia = ref(null)
 const currentDataIndex = ref(0)
 
+// 控制侧边栏的宽度
 watch(sideDiaStatus, (newValue) => {
-  console.log(sideDia.value)
-
-  if(newValue) {
-    sideDia.value.style.minWidth = '35%';
+  if (newValue) {
+    sideDia.value.style.width = '40%';
   } else {
-    sideDia.value.style.width = '0';
+    sideDia.value.style.width = '0px';
   }
-
-  console.log(sideDia.value.style);
 })
 
 watch(currentDataIndex, (newDataIndex) => {
   // TODO:根据新的dataIndex更新右侧栏的详细信息
+
 })
 
 function sideDiaChange(newIndex) {
 
   sideDiaStatus.value = !sideDiaStatus.value;
-  console.log(sideDiaStatus.value)
   return;
 
-  if(sideDiaStatus && currentDataIndex === newIndex) {
-    return;
-  } else if(sideDiaStatus) {
+  if (sideDiaStatus && currentDataIndex === newIndex) {
+    // 同一个分块点击进行回收
+    sideDiaStatus.value = !sideDiaStatus.value;
+  } else if (sideDiaStatus) {
     // TODO:更换右侧详细展示数据
     currentDataIndex.value = newIndex;
 
@@ -148,12 +169,11 @@ function sideDiaChange(newIndex) {
   <main>
     <div id="content">
       <div id="overview">
-        <el-row :gutter="10" justify="start">
+        <el-row :gutter="10" justify="start" v-for="i in linesCount">
           <el-col
-              v-for="(curtainInfo, index) in tmpData.slice()"
+              v-for="(curtainInfo, index) in tmpData.slice(i * lineSize, (i + 1)*lineSize)"
               :key="index"
-              :span="4"
-              :offset="1"
+              :span="3"
           >
             <el-card :body-style="{ padding: '0', cursor: 'pointer', backgroundColor: 'palegoldenrod'}"
                      shadow="hover" @click="sideDiaChange(index)">
@@ -171,25 +191,21 @@ function sideDiaChange(newIndex) {
         </el-row>
       </div>
       <div id="sideDia" ref="sideDia">
-        <el-card :body-style="{ padding: '10px 10px', backgroundColor: 'palegoldenrod', height: '100vh'}">
-          <img
-              src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-              class="image"
-          />
-          <div style="padding: 14px">
-            <span>Yummy hamburger</span>
-          </div>
-        </el-card>
+        <!--        TODO: 待完成-->
       </div>
     </div>
     <div id="bottomBar">
-      <el-pagination
-          small
-          background
-          layout="prev, pager, next"
-          :total="50"
-          class="mt-4"
-      />
+      <div id="pagination">
+        <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+            :total="total"
+            :page-sizes="[12, 18, 36, 72]"
+            layout="total, sizes, prev, pager, next, jumper"
+        />
+      </div>
     </div>
   </main>
 </template>
@@ -198,25 +214,40 @@ function sideDiaChange(newIndex) {
 main {
   display: flex;
   flex-direction: column;
+  height: 100vh;
 
-  height: 100%;
+  background: antiquewhite;
 }
 
 #content {
-  margin: 5px 5px;
-
+  margin: 30px 30px 0 30px;
   display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  flex-grow: 1;
 }
 
 #sideDia {
-  background: blue;
+  background: cadetblue;
 
+  border-radius: 15px;
   margin-left: 10px;
 
-  width: 35%;
+  width: 40%;
   height: 100%;
 
-  transition: width;
+  transition: width 0.5s;
+}
+
+#bottomBar {
+  flex-basis: 7%;
+
+  display: flex;
+  justify-content: center;
+}
+
+#pagination {
+  margin: auto 0;
 }
 
 </style>
