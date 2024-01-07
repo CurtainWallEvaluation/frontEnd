@@ -5,22 +5,24 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/oriImageDetail/:taskID/:originalImgID',
       name: 'oriImageDetail',
-      component: oriImageDetail
+      component: () => import('../views/oriImageDetail.vue'),
+      props: true,
     },
     {
-      path: '/oriImageOverview',
-      name: 'oriImageOverview',
+      path: '/oriImageDataView',
+      name: 'oriImageDataView',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/DataOverView.vue')
     },
     {
-      path: '/taskOverview',
+      path: '/task/:taskID',
       name: 'taskOverview',
-      componen: () => import('../views/taskOverview.vue')
+      component: () => import('../views/taskOverview.vue'),
+      props: true,
     }
   ]
 })

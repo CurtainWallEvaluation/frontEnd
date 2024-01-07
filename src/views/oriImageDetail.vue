@@ -1,8 +1,9 @@
 <script setup>
-import {ref, watch, onMounted, onBeforeMount} from "vue";
+import {ref, watch, onMounted, onBeforeMount, getCurrentInstance} from "vue";
 import {useRouter} from "vue-router";
 import axios from "axios";
 import {ArrowLeftBold} from "@element-plus/icons-vue";
+import {ElLoading, ElMessage} from "element-plus";
 
 // 分块算法返回数据存储
 const stoneList = [
@@ -128,46 +129,75 @@ function dataPreProcess(stoneList, glassList) {
   return ret;
 }
 
-const tmpData = dataPreProcess(stoneList, glassList);
-
 // 路由设置
 const router = useRouter();
+let displayData = dataPreProcess(stoneList, glassList);
+const instance = getCurrentInstance();
+const props = defineProps({
+  taskID: Number,
+  originalImgID: Number,
+})
 
 onBeforeMount(() => {
-  currentData.value = tmpData[currentDataIndex.value];
+  currentData.value = displayData[currentDataIndex.value];
 })
 // 渲染后进入后初始化数据
 onMounted(() => {
-  //TODO：初始化分页数据，并根据Router的taskID到数据库中取得对应的原图数据（无需数据库分页）
   currentPage.value = 1;
   pageSize.value = 12;
-  total.value = tmpData.length;
+  total.value = displayData.length;
 
   linesCount.value = pageSize.value / lineSize.value
   sideDiaStatus.value = false;
+  let stoneList, glassList;
 
-  //TODO:对获取的stone数组和glass数组进行预处理
+  console.log(props.originalImgID);
+  console.log(props.taskID);
+  // 渲染加载页面
+  const loading = ElLoading.service({
+    fullscreen: true,
+    text: '加载数据中',
+  })
+  // 向数据库获取对应原图分片数据
+  instance.proxy.$axios.get(`/image/getImgCurtainInfo/${props.originalImgID}`)
+      .then((res) => {
+        console.log(res);
+        stoneList = res.data.data.stoneList;
+        glassList = res.data.data.glassList;
+        total.value = displayData.length;
+        console.log(stoneList);
+        console.log(glassList);
+        displayData = dataPreProcess(stoneList, glassList);
 
+        loading.close();
+      })
+      .catch((error) => {
+        console.log(error);
+
+        ElMessage({
+          message: '数据加载失败',
+          type: 'error',
+        })
+        loading.close();
+      })
 })
 
 // 分块展示分页控制
 const currentPage = ref(0)
 const total = ref(0)
 const pageSize = ref(10)
-const baseCount = ref(0)
 
 function handlePageChange(newPage) {
-  // TODO:重新获取对应数量的分块数据
-  baseCount.value = (newPage - 1) * pageSize.value;
+  // 前端数据库分页
+  currentPage.value = newPage;
 
 }
 
 function handleSizeChange(newSize) {
-  // TODO:根据当前页大小，重新渲染数据；行数应该取数据行数和页面行数的较小值
-  linesCount.value = Math.min(newSize / lineSize.value, tmpData.length / lineSize.value);
+  // 根据当前页大小，重新渲染数据；行数应该取数据行数和页面行数的较小值
+  linesCount.value = Math.min(newSize / lineSize.value, displayData.length / lineSize.value);
   currentPage.value = 1;
   pageSize.value = newSize;
-  baseCount.value = 0;
 
 }
 
@@ -180,7 +210,7 @@ const sideDiaStatus = ref(false)
 const sideDia = ref(null)
 const imgContainer = ref(null)
 const currentDataIndex = ref(0)
-const currentData = ref(tmpData[currentDataIndex])
+const currentData = ref(displayData[currentDataIndex])
 
 // 控制侧边栏的宽度
 watch(sideDiaStatus, (newValue) => {
@@ -200,7 +230,7 @@ watch(sideDiaStatus, (newValue) => {
 })
 
 watch(currentDataIndex, (newDataIndex) => {
-  currentData.value = tmpData[newDataIndex];
+  currentData.value = displayData[newDataIndex];
 })
 
 let currentDiv = ref(null);
@@ -241,8 +271,8 @@ function sideDiaChange(newIndex, event) {
   <main>
     <div id="topBar">
       <el-button-group size="large">
-        <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push('/taskOverview')">返回</el-button>
-        <el-button color="#E5E5B0" type="primary" @click="router.push('/oriImageOverview')">
+        <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push(`/task/${props.taskID}`)">返回</el-button>
+        <el-button color="#E5E5B0" type="primary" @click="router.push('/oriImageDataView')">
           数据概览
           <el-icon class="el-icon--right">
             <ArrowRight/>
@@ -255,7 +285,7 @@ function sideDiaChange(newIndex, event) {
         <el-scrollbar>
           <el-row :gutter="10" justify="start" v-for="i in linesCount">
             <el-col
-                v-for="(curtainInfo, index) in tmpData.slice((i - 1) * lineSize, i * lineSize)"
+                v-for="(curtainInfo, index) in displayData.slice((i - 1) * lineSize, i * lineSize)"
                 :key="index + (i - 1) * lineSize"
                 :span="4"
             >
@@ -341,13 +371,12 @@ main {
 
 #topBar {
   flex-basis: 5%;
+  background: #CCF6FF;
 
   box-sizing: border-box;
-  margin: 0 30px;
+  padding: 10px 30px;
   display: flex;
   justify-content: start;
-
-  padding: 10px;
 }
 
 #content {
@@ -417,7 +446,10 @@ main {
   display: flex;
   flex-direction: column;
 
-  transition: outline-width 0.2s;
+  transition: outline-width,box-shadow 0.2s;
+}
+.infoCard:hover {
+  box-shadow: 0 16px 32px 0 rgba(48, 55, 66, 0.15);
 }
 
 .infoCard .el-image {
