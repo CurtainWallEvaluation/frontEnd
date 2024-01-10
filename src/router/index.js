@@ -23,12 +23,6 @@ const router = createRouter({
           component: () => import('../views/imgUpload.vue'),
         },
         {
-          // 个人信息
-          path: 'profile',
-          name: 'profile',
-          component: () => import('../views/profile.vue'),
-        },
-        {
           // 任务历史
           path: 'taskHistory',
           name: 'taskHistory',
@@ -59,17 +53,17 @@ const router = createRouter({
   ]
 })
 
-// 导航守卫，前置处理
-// router.beforeEach((to, from, next) => {
-//   let isAuthenticated = !!localStorage.getItem('userInfo')
-//   // 如果路由要跳转到除了登录和注册的界面的话就判断是否已经登录，如果没有登录就强制跳到登录界面
-//   if (to.path !== '/' && !isAuthenticated) {
-//     next({ path: '/' })
-//     ElMessage({
-//       message: '请先登录！',
-//       type: 'warning',
-//     })
-//   } else next()
-// })
+// 导航守卫，未登录则进行跳转
+router.beforeEach((to, from, next) => {
+  let isLogin = !!localStorage.getItem('isLogin')
+  // 如果路由要跳转到除了登录和注册的界面的话就判断是否已经登录，如果没有登录就强制跳到登录界面
+  if (to.path !== '/' && !isLogin) {
+    next({ path: '/' })
+    ElMessage({
+      message: '请先登录！',
+      type: 'warning',
+    })
+  } else next()
+})
 
 export default router

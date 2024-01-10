@@ -30,13 +30,22 @@ const logInForm = reactive({
 // 注册中点击“确认”后进行注册
 function signIn() {
   // TODO：向后端请求后，在localStorage中存储登录信息，并进行跳转
+  // 前端测试注册
+  localStorage.setItem('isLogin', '1');
+  localStorage.setItem('name', signInForm.name);
+  localStorage.setItem('password', signInForm.password);
 
+  router.push('/homePage');
 }
 
 // 登录中点击“确认”后进行登录
 function logIn() {
   // TODO：向后端请求后，在localStorage中存储登录信息，并进行跳转
+  // 前端测试登录
+  localStorage.setItem('isLogin', '1');
+  localStorage.setItem('name', signInForm.name);
 
+  router.push('/homePage');
 }
 
 </script>
@@ -87,7 +96,7 @@ function logIn() {
         </el-form>
         <template #footer>
           <el-button size="large" type="text" @click="isSignIn=false">切换为登录</el-button>
-          <el-button size="large">确认</el-button>
+          <el-button size="large" @click="signIn">确认</el-button>
         </template>
       </el-card>
       <el-card v-else class="logIn">
@@ -114,7 +123,7 @@ function logIn() {
         </el-form>
         <template #footer>
           <el-button size="large" type="text" @click="isSignIn=true">切换为注册</el-button>
-          <el-button size="large">确认</el-button>
+          <el-button size="large" @click="logIn">确认</el-button>
         </template>
       </el-card>
     </div>

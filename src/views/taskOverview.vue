@@ -1,5 +1,5 @@
 <script setup>
-import {ref, watch, onMounted, onBeforeMount, getCurrentInstance} from "vue";
+import {ref, watch, onMounted, onBeforeMount, getCurrentInstance, inject} from "vue";
 // 路由设置
 import {useRouter} from "vue-router";
 import {ArrowLeftBold, Search} from "@element-plus/icons-vue";
@@ -61,12 +61,14 @@ const tmpData = [
 
 // 获取当前组件上下文实例
 const instance = getCurrentInstance();
+const container = ref(null);
+
 // 渲染后进入后初始化数据
 onMounted(() => {
   // 初始化分页数据，并从数据库中取得相关数据（该任务对应的任务占总数）
   currentPage.value = 1;
   pageSize.value = 12;
-  linesCount.value = pageSize.value / lineSize.value;
+  linesCount.value = Math.ceil(pageSize.value / lineSize.value);
 
   // 向数据库拿取对应任务信息
   console.log(props.taskID);
@@ -128,8 +130,9 @@ onMounted(() => {
           message: '任务数据加载失败',
           type: 'error',
         })
-
       })
+
+  taskInfoDialogStatus.value = false;
 })
 
 // 页面元素索引
@@ -153,7 +156,7 @@ const baseCount = ref(0);
 
 // 负责危险照片筛选的模式切换
 watch(dangerOnly, (newValue, oldValue) => {
-  if(newValue === oldValue) {
+  if (newValue === oldValue) {
     return;
   }
 
@@ -256,10 +259,14 @@ function handlePageChange(newPage) {
 }
 
 function handleSizeChange(newSize) {
-  // TODO:根据当前页大小，向数据库申请新的数据；行数应该取数据行数和页面行数的较小值
-  lineSize.value = newSize;
-  linesCount.value = Math.min(newSize / lineSize.value, displayData.length / lineSize.value);
+
+  linesCount.value = Math.ceil(Math.min(newSize / lineSize.value, displayData.value.length / lineSize.value));
   pageSize.value = newSize;
+
+  console.log(displayData.value);
+  console.log(lineSize.value);
+  console.log(linesCount.value);
+  console.log(newSize);
   // 若更新页大小则默认回到第一页
   handlePageChange(1);
 }
@@ -269,16 +276,63 @@ const taskData = {
   taskID: '1',
   dateTime: '2012-12-12',
   qualNum: 122,
-  unqualNum: 23
+  unqualNum: 23,
+  totalNum: 145,
 }
 const taskInfo = ref(taskData);
-const taskInfoDialogStatus = ref(false);
+const taskInfoDialogStatus = ref(true);
 
 // 用户点击原图后跳转到具体图页面
 function oriImageClickHanler(taskID, originalImgID) {
   console.log(taskID, originalImgID);
   router.push(`/oriImageDetail/${taskID}/${originalImgID}`);
 }
+
+// 加载echart图片
+const isFirstView = ref(true);
+watch(taskInfoDialogStatus, (newValue) => {
+  if(newValue && isFirstView.value) {
+    isFirstView.value = false;
+
+    console.log(container.value);
+    let chartInstance = instance.proxy.$echarts.init(container.value, "light");
+
+    let option = {
+      title: {
+        text: '图片合格异常分布',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'right'
+      },
+      series: [
+        {
+          name: '图片占比',
+          type: 'pie',
+          radius: '70%',
+          data: [
+            {value: taskInfo.value.qualNum, name: '合格图片数量', itemStyle: { normal: { color: 'green'}}},
+            {value: taskInfo.value.unqualNum, name: '异常图片数量', itemStyle: { normal: { color: 'red'}}},
+          ],
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
+
+    chartInstance.setOption(option);
+  }
+})
+
 </script>
 
 <template>
@@ -287,19 +341,22 @@ function oriImageClickHanler(taskID, originalImgID) {
                width="50%">
       <template #header>
         <div id="taskInfoDialogHeader">
-          <h1 @click="console.log(taskInfo)">本次任务质量评估结果</h1>
+          <h1 ref="h1">本次任务质量评估结果</h1>
           <p style="color: #808080">评估任务数量：{{ taskInfo.totalNum }}</p>
         </div>
       </template>
-      <div id="dialogContent">
+      <div id="dialogContent" ref="container">
         <!--        TODO: 弹窗中的图表-->
+      </div>
+      <div ref="test">
 
       </div>
     </el-dialog>
     <div id="topBar">
       <div class="leftPart">
         <el-button-group size="large">
-          <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push('/homepage')">返回</el-button>
+          <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push('/homepage')">返回
+          </el-button>
           <el-button color="#E5E5B0" type="primary" @click="taskInfoDialogStatus=true">
             任务数据统计
           </el-button>
@@ -458,8 +515,6 @@ main {
 }
 
 .infoCard {
-  //background: rgba(127, 255, 212, 0.78);
-
   min-height: 250px;
   cursor: pointer;
   margin: 5px;
@@ -510,5 +565,13 @@ main {
 
 #pagination {
   margin: auto 0;
+}
+
+#dialogContent {
+  padding: 0;
+  margin: 0;
+
+  width: 700px;
+  height: 300px;
 }
 </style>

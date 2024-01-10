@@ -1,6 +1,7 @@
 <script setup>
 import {ref, watch, onMounted, onBeforeMount, getCurrentInstance, reactive} from "vue";
 import {useRouter} from "vue-router";
+import {ElMessage, ElMessageBox} from "element-plus";
 
 // 上边栏相关控制
 const router = useRouter();
@@ -15,12 +16,15 @@ function handleSelect(index) {
 
 onMounted(() => {
   // TODO：从localStorage中拿取当前用户数据
+  currentUserInfo.name = localStorage.getItem('name');
+  currentUserInfo.userID = '12321';
 })
 
 // 个人信息弹窗与修改相关
 const profileDiaVisible = ref(false);
 const isModifying = ref(false);
 const modifyLoading = ref(false);
+const hasChanged = ref(false);
 const currentUserInfo = reactive({
   userID: '123141',
   name: '王小明',
@@ -34,7 +38,7 @@ const nProfileInfoForm = reactive({
 
 watch(isModifying, (newValue) => {
   // 更新表格结构体
-  if(newValue === true) {
+  if (newValue === true) {
     nProfileInfoForm.name = currentUserInfo.name;
   }
 })
@@ -54,10 +58,39 @@ function confirmClickHandler() {
   // 测试修改用户时候的按钮更新
   setTimeout(() => {
     modifyLoading.value = false;
+    isModifying.value = false;
+
+    ElMessage({
+      message: '修改成功',
+      type: 'success',
+    })
   }, 2000)
 
   // TODO：更新currentUserInfo中的信息
   currentUserInfo.name = nProfileInfoForm.name;
+}
+
+// 管理用户信息更改时候弹框退出
+function dialogCloseHandler(done) {
+  // 若用户正在进行个人信息修改且已经修改
+  if (isModifying.value && hasChanged.value) {
+    ElMessageBox.confirm('存在为保存的数据，要退出吗', 'Warning', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+        .then(() => {
+          isModifying.value = false;
+          hasChanged.value = false;
+          done();
+        })
+        .catch(() => {
+        })
+  } else {
+    isModifying.value = false;
+    hasChanged.value = false;
+    done();
+  }
 }
 
 </script>
@@ -83,11 +116,11 @@ function confirmClickHandler() {
         </div>
       </el-menu>
     </div>
-    <el-dialog v-model="profileDiaVisible" title="个人信息">
+    <el-dialog v-model="profileDiaVisible" title="个人信息" :before-close="dialogCloseHandler">
       <!--默认是查看用户ID和用户名-->
       <el-descriptions v-if="isModifying===false" size="large" direction="horizontal" column="1">
-        <el-descriptions-item label="用户ID">123123</el-descriptions-item>
-        <el-descriptions-item label="用户名">测试</el-descriptions-item>
+        <el-descriptions-item label="用户ID">{{ currentUserInfo.userID }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">{{ currentUserInfo.name }}</el-descriptions-item>
       </el-descriptions>
       <!--点击按钮后，修改用户名和密码-->
       <el-form v-else :model="nProfileInfoForm" label-width="auto" show-message size="large">
@@ -99,6 +132,7 @@ function confirmClickHandler() {
           <el-input
               v-model="nProfileInfoForm.name"
               placeholder="请输入要注册的用户名"
+              @change="hasChanged=true"
           />
         </el-form-item>
         <el-form-item label="密码" prop="password" :rules="{
@@ -110,6 +144,7 @@ function confirmClickHandler() {
               v-model="nProfileInfoForm.password"
               placeholder="请输入密码"
               show-password
+              @change="hasChanged=true"
           />
         </el-form-item>
         <el-form-item label="重新输入密码" prop="confirmPassword" :rules="{
@@ -121,6 +156,7 @@ function confirmClickHandler() {
               v-model="nProfileInfoForm.confirmPassword"
               placeholder="请再次输入密码"
               show-password
+              @change="hasChanged=true"
           />
         </el-form-item>
       </el-form>

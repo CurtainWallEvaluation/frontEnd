@@ -1,7 +1,6 @@
 <script setup>
 import {ref, watch, onMounted, onBeforeMount, getCurrentInstance} from "vue";
 import {useRouter} from "vue-router";
-import axios from "axios";
 import {ArrowLeftBold} from "@element-plus/icons-vue";
 import {ElLoading, ElMessage} from "element-plus";
 
@@ -164,10 +163,12 @@ onMounted(() => {
         console.log(res);
         stoneList = res.data.data.stoneList;
         glassList = res.data.data.glassList;
-        total.value = displayData.length;
+
         console.log(stoneList);
         console.log(glassList);
         displayData = dataPreProcess(stoneList, glassList);
+        total.value = displayData.length;
+        linesCount.value = Math.ceil(Math.min(pageSize.value / lineSize.value, displayData.length / lineSize.value));
 
         loading.close();
       })
@@ -188,17 +189,17 @@ const total = ref(0)
 const pageSize = ref(10)
 
 function handlePageChange(newPage) {
-  // 前端数据库分页
+  // 前端分页
   currentPage.value = newPage;
-
 }
 
 function handleSizeChange(newSize) {
   // 根据当前页大小，重新渲染数据；行数应该取数据行数和页面行数的较小值
-  linesCount.value = Math.min(newSize / lineSize.value, displayData.length / lineSize.value);
+  linesCount.value = Math.ceil(Math.min(newSize / lineSize.value, displayData.length / lineSize.value));
   currentPage.value = 1;
   pageSize.value = newSize;
 
+  console.log(linesCount);
 }
 
 // 左侧分块展示行列控制
@@ -238,7 +239,7 @@ let currentDiv = ref(null);
 // 记录选中的DIV并显示边框
 watch(currentDiv, (newDiv, oldValue) => {
   // 取消选中旧的DIV边框
-  if(oldValue !== null) {
+  if (oldValue !== null) {
     oldValue.style.outline = 'none';
   }
 
@@ -271,7 +272,9 @@ function sideDiaChange(newIndex, event) {
   <main>
     <div id="topBar">
       <el-button-group size="large">
-        <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push(`/task/${props.taskID}`)">返回</el-button>
+        <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push(`/task/${props.taskID}`)">
+          返回
+        </el-button>
         <el-button color="#E5E5B0" type="primary" @click="router.push('/oriImageDataView')">
           数据概览
           <el-icon class="el-icon--right">
@@ -289,8 +292,9 @@ function sideDiaChange(newIndex, event) {
                 :key="index + (i - 1) * lineSize"
                 :span="4"
             >
-              <div class="infoCard" @click="sideDiaChange(index + (i - 1) * lineSize, $event)">
-                <el-image fit="fill" :class="curtainInfo.status === 0? 'safe' : (curtainInfo.status === 1? 'normal' : 'danger')" :src="curtainInfo.imageUrl" style="width: 100%; height: 100%">
+              <div class="infoCard" @click="sideDiaChange(index + (i - 1) * lineSize, $event)"
+                   :class="curtainInfo.status === 0? 'safe' : (curtainInfo.status === 1? 'normal' : 'danger')">
+                <el-image fit="cover" :src="curtainInfo.imageUrl" style="width: 100%; height: 100%">
                   <template #error>
                     <div class="image-slot">
                       <el-icon>
@@ -306,7 +310,6 @@ function sideDiaChange(newIndex, event) {
         </el-scrollbar>
       </div>
       <div id="sideDia" ref="sideDia">
-        <!--        TODO: 侧边显示栏待完成-->
         <h1>
           幕墙类型：{{ currentData.type === 'glass' ? '玻璃' : '石材' }}
           <el-tag v-if="currentData.status === 0 && sideDiaStatus" type="success" size="large">良好</el-tag>
@@ -334,7 +337,7 @@ function sideDiaChange(newIndex, event) {
           </div>
         </div>
         <div id="imgContainer" ref="imgContainer">
-          <el-image fit="fill">
+          <el-image fit="fill" :src="currentData.imageUrl">
             <template #error>
               <div class="image-slot">
                 图片加载失败！
@@ -437,7 +440,8 @@ main {
 }
 
 .infoCard {
-  background: aquamarine;
+  //background: aquamarine;
+  position: relative;
 
   min-height: 250px;
   cursor: pointer;
@@ -446,25 +450,34 @@ main {
   display: flex;
   flex-direction: column;
 
-  transition: outline-width,box-shadow 0.2s;
+  transition: outline-width, box-shadow 0.2s;
 }
+
 .infoCard:hover {
   box-shadow: 0 16px 32px 0 rgba(48, 55, 66, 0.15);
 }
 
 .infoCard .el-image {
   flex-grow: 1;
-  opacity: 0.4;
-  & .safe {
-    background: green;
-  }
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 
-  & .normal {
-    background: yellow;
-  }
-  & .danger {
-    background: red;
-  }
+  opacity: 0.7;
+}
+
+.infoCard.safe {
+  background: green;
+}
+
+.infoCard.normal {
+  background: yellow;
+}
+
+.infoCard.danger {
+  background: red;
 }
 
 .infoCard .image-slot {
