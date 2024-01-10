@@ -288,17 +288,18 @@ function oriImageClickHanler(taskID, originalImgID) {
       <template #header>
         <div id="taskInfoDialogHeader">
           <h1 @click="console.log(taskInfo)">本次任务质量评估结果</h1>
-          <p style="color: #808080">评估任务数量：{{ taskInfo.qualNum + taskInfo.unqualNum }}</p>
+          <p style="color: #808080">评估任务数量：{{ taskInfo.totalNum }}</p>
         </div>
       </template>
       <div id="dialogContent">
         <!--        TODO: 弹窗中的图表-->
+
       </div>
     </el-dialog>
     <div id="topBar">
       <div class="leftPart">
         <el-button-group size="large">
-          <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push('/')">返回</el-button>
+          <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push('/homepage')">返回</el-button>
           <el-button color="#E5E5B0" type="primary" @click="taskInfoDialogStatus=true">
             任务数据统计
           </el-button>
