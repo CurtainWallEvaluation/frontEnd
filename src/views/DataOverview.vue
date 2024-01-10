@@ -1,110 +1,42 @@
 <script>
-import { ref, onMounted } from 'vue'
-import echarts from '@/echarts'
-import {useRouter} from "vue-router";
+import echarts from '@/echarts';
+import axios from 'axios';
+import {ElLoading, ElMessage} from "element-plus";
+
+const overallPiechartEvaluationData = {
+  good: 1,
+  qualified: 1,
+  unqualified: 1,
+}
+
+const storeTableData = {
+  num_good: 0,
+  num_qualified:0,
+  num_unqualified:0,
+  crack_square_good: 0,
+  crack_square_qualified: 0,
+  crack_square_unqualified:0,
+  dirt_cent_good:0,
+  dirt_cent_qualified:0,
+  dirt_cent_unqualified:0,
+}
+
+const glassHistogramChartData = {
+  explotion: 1,
+  noExplotion: 1
+}
+
 export default {
+  props:{
+    originalImgID: {
+      type: Number,
+      required: true
+    }
+  },
   mounted(){
-    let glassHistogram = echarts.init(this.$refs.glassHistogram)
-    let xData = [15,25];
-    let yData = ["有内爆","无内爆"];
-    let histogramOption = {
-      title:{
-        text:"玻璃幕墙内爆统计图"
-      },
-      xAxis:{
-
-      },
-      yAxis:{
-        data:yData,
-        type:"category"
-      },
-      legend:{
-        left:"right",
-        orient:"vertical"
-      },
-      series:[
-        {
-          name:"幕墙块数",
-          type:"bar",
-          data:xData,
-          barWidth: 30,
-          itemStyle:{
-            normal:{
-              color:function(params){
-                let colorList=[
-                    "#82FD63",
-                    "#FD6C63"
-                ]
-                return colorList[params.dataIndex]
-              }
-            }
-          }
-        }
-      ]
-    }
-    glassHistogram.setOption(histogramOption)
-
-
-    let OverallPieChart = echarts.init(this.$refs.OverallPieChart)
-    let data = [
-      {
-        value:15,
-        name:"优秀",
-        itemStyle:{
-          normal:{
-            color:"rgb(27,217,27)"
-          }
-        }
-      },
-
-      {
-        value:20,
-        name:"合格",
-        itemStyle:{
-          normal:{
-            color:"rgb(255,255,30)"
-          }
-        }
-      },
-      {
-        value:5,
-        name:"不合格",
-        itemStyle:{
-          normal:{
-            color:"rgb(200,0,0)"
-          }
-        }
-      }
-    ]
-    let pieChartOption={
-      title:{
-        text:"分块图片韧性等级占比图",
-        left:"center",
-        bottom: '8%'
-      },
-      legend:{
-        left:"left",
-        orient:"vertical"
-      },
-      series:[
-        {
-          name:"基于熵值法评估体系",
-          type:"pie",
-          data,
-          radius:["20%","70%"],
-          label:{
-            show:true,
-            position:"inside"
-          },
-          roseType:"area",
-          itemStyle:{
-            shadowBlur:200,
-            shadowColor:"reba(0,0,0,.5)"
-          }
-        }
-      ]
-    }
-    OverallPieChart.setOption(pieChartOption)
+    this.getOverallData()
+    this.getGlassData()
+    this.getStoneData()
   },
   name:"home",
   data(){
@@ -112,21 +44,21 @@ export default {
       tableData: [
         {
           name: '数量',
-          good: 23,
-          qualified: 5,
-          unqualified: 2
+          good: storeTableData.num_good,
+          qualified: storeTableData.num_qualified,
+          unqualified: storeTableData.num_unqualified,
         },
         {
-          name: '平均裂缝面积',
-          good: 201,
-          qualified: 1180,
-          unqualified: 4350
+          name: '平均裂缝面积比',
+          good: storeTableData.crack_square_good,
+          qualified: storeTableData.crack_square_qualified,
+          unqualified: storeTableData.crack_square_unqualified
         },
         {
           name: '最大污渍面积占比',
-          good: 0.005,
-          qualified: 0.0178,
-          unqualified: 0.0525
+          good: storeTableData.dirt_cent_good,
+          qualified: storeTableData.dirt_cent_qualified,
+          unqualified: storeTableData.dirt_cent_unqualified
         }
       ]
     }
@@ -136,6 +68,231 @@ export default {
       this.$router.push({
         name: 'oriImageDetail'
       })
+    },
+    async getOverallData(){
+      const loading = ElLoading.service({
+        fullscreen: true,
+        text: '加载数据中',
+      })
+      try{
+        const url = `http://localhost:8081/image/getOriImgStatic/${this.originalImgID}`
+        const res = await axios({
+          url,
+        })
+        overallPiechartEvaluationData.good = res.data.data.goodNum;
+        overallPiechartEvaluationData.qualified = res.data.data.qualNum;
+        overallPiechartEvaluationData.unqualified = res.data.data.uqualNum;
+        console.log(overallPiechartEvaluationData.good)
+        console.log(overallPiechartEvaluationData.qualified)
+        console.log(overallPiechartEvaluationData.unqualified)
+        let OverallPieChart = echarts.init(this.$refs.OverallPieChart)
+        let data = [
+          {
+            value:overallPiechartEvaluationData.good,
+            name:"优秀",
+            itemStyle:{
+              normal:{
+                color:"rgb(27,217,27)"
+              }
+            }
+          },
+          {
+            value:overallPiechartEvaluationData.qualified,
+            name:"合格",
+            itemStyle:{
+              normal:{
+                color:"rgb(255,255,30)"
+              }
+            }
+          },
+          {
+            value:overallPiechartEvaluationData.unqualified,
+            name:"不合格",
+            itemStyle:{
+              normal:{
+                color:"rgb(200,0,0)"
+              }
+            }
+          }
+        ]
+        let pieChartOption={
+          title:{
+            text:"分块图片韧性等级占比图",
+            left:"center",
+            bottom: '8%'
+          },
+          legend:{
+            left:"left",
+            orient:"vertical"
+          },
+          series:[
+            {
+              name:"基于熵值法评估体系",
+              type:"pie",
+              data,
+              radius:["20%","70%"],
+              label:{
+                show:true,
+                position:"inside"
+              },
+              roseType:"area",
+              itemStyle:{
+                shadowBlur:200,
+                shadowColor:"reba(0,0,0,.5)"
+              }
+            }
+          ]
+        }
+        OverallPieChart.setOption(pieChartOption)
+        console.log("already update piechart data")
+        loading.close();
+      } catch(error){
+        console.log(error)
+        ElMessage({
+          message: '数据加载失败',
+          type: 'error',
+        })
+        loading.close();
+      }
+    },
+    async getGlassData(){
+      const loading = ElLoading.service({
+        fullscreen: true,
+        text: '加载数据中',
+      })
+      try{
+        const url = `http://localhost:8081/image/getOriImgGlassStatic/${this.originalImgID}`
+        const res = await axios({
+          url,
+        })
+        const glassdata = res.data.data.data
+        glassHistogramChartData.explotion = glassdata[0]
+        glassHistogramChartData.noExplotion = glassdata[1]
+        console.log(glassHistogramChartData.explotion)
+        console.log(glassHistogramChartData.noExplotion)
+        let glassHistogram = echarts.init(this.$refs.glassHistogram)
+        let xData =  Object.values(glassHistogramChartData)
+        let yData = ["有内爆","无内爆"];
+        let histogramOption = {
+          title:{
+            text:"玻璃幕墙内爆统计图"
+          },
+          xAxis:{
+
+          },
+          yAxis:{
+            data:yData,
+            type:"category"
+          },
+          legend:{
+            left:"right",
+            orient:"vertical"
+          },
+          series:[
+            {
+              name:"幕墙块数",
+              type:"bar",
+              data:xData,
+              barWidth: 30,
+              itemStyle:{
+                normal:{
+                  color:function(params){
+                    let colorList=[
+                      "#82FD63",
+                      "#FD6C63"
+                    ]
+                    return colorList[params.dataIndex]
+                  }
+                }
+              }
+            }
+          ]
+        }
+        glassHistogram.setOption(histogramOption)
+        console.log("already get glass data")
+        loading.close();
+      } catch(error){
+        console.log(error)
+        ElMessage({
+          message: '数据加载失败',
+          type: 'error',
+        })
+        loading.close();
+      }
+    },
+    async getStoneData(){
+      const loading = ElLoading.service({
+        fullscreen: true,
+        text: '加载数据中',
+      })
+      try{
+        const url = `http://localhost:8081/image/getImgCurtainInfo/${this.originalImgID}`
+        const res = await axios({
+          url,
+        })
+        const stonelist = res.data.data.stoneList;
+        stonelist.forEach(item=>{
+          console.log(item.point)
+          if(item.point >= 0.9){
+            storeTableData.num_good++
+            storeTableData.crack_square_good += item.crackAreaProportion
+            storeTableData.dirt_cent_good = Math.max(
+                storeTableData.dirt_cent_good,
+                item.stainAreaProportion
+            )
+          }
+          else if(item.point >= 0.6 && item.point < 0.9){
+            // 合格
+            storeTableData.num_qualified++
+            storeTableData.crack_square_qualified += item.crackAreaProportion
+            storeTableData.dirt_cent_qualified = Math.max(
+                storeTableData.dirt_cent_qualified,
+                item.stainAreaProportion
+            )
+          } else {
+            // 不合格
+            this.storeTableData.num_unqualified++
+            this.storeTableData.crack_square_unqualified += item.crackAreaProportion
+            this.storeTableData.dirt_cent_unqualified = Math.max(
+                storeTableData.dirt_cent_unqualified,
+                item.stainAreaProportion
+            )
+          }
+        })
+        storeTableData.crack_square_good = storeTableData.crack_square_good / storeTableData.num_good
+        storeTableData.crack_square_qualified = storeTableData.crack_square_qualified / storeTableData.num_qualified
+        storeTableData.crack_square_unqualified = storeTableData.crack_square_unqualified / storeTableData.num_unqualified
+        console.log(storeTableData)
+        console.log("already get glass data")
+        this.tableData = [
+          {
+            name: '数量',
+            good: storeTableData.num_good,
+            qualified: storeTableData.num_qualified,
+            unqualified: storeTableData.num_unqualified,
+          },
+          {
+            name: '平均裂缝面积比',
+            good: storeTableData.crack_square_good,
+            qualified: storeTableData.crack_square_qualified,
+            unqualified: storeTableData.crack_square_unqualified
+          },
+          {
+            name: '最大污渍面积占比',
+            good: storeTableData.dirt_cent_good,
+            qualified: storeTableData.dirt_cent_qualified,
+            unqualified: storeTableData.dirt_cent_unqualified
+          }
+        ]
+        loading.close();
+      } catch(error){
+        console.log(error)
+        ElMessage({
+          message: '数据加载失败',
+          type: 'error',
+        })
+        loading.close();
+      }
     }
   }
 };
@@ -154,11 +311,11 @@ export default {
     <div class = "container">
       <div class = "OverallChart">
         <div class="pieChartTop">
-              <el-icon class = "chartIcon"><PieChart/></el-icon>
-              <el-text type = "primary" class = "chartTitle">幕墙总体质量评估结果</el-text>
-              <br>
-              <el-text type = "success" class = "chartNextTitle">基于熵值法评估体系</el-text>
-              <div>------------------------------------------------------------------------</div>
+          <el-icon class = "chartIcon"><PieChart/></el-icon>
+          <el-text type = "primary" class = "chartTitle">幕墙总体质量评估结果</el-text>
+          <br>
+          <el-text type = "success" class = "chartNextTitle">基于熵值法评估体系</el-text>
+          <div>------------------------------------------------------------------------</div>
         </div>
         <div ref="OverallPieChart" id="OverallPieChart"></div>
         <div

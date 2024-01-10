@@ -266,13 +266,12 @@ function sideDiaChange(newIndex, event) {
 }
 
 </script>
-
 <template>
   <main>
     <div id="topBar">
       <el-button-group size="large">
         <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push(`/task/${props.taskID}`)">返回</el-button>
-        <el-button color="#E5E5B0" type="primary" @click="router.push('/oriImageDataView')">
+        <el-button color="#E5E5B0" type="primary" @click="router.push(`/oriImageDataView/${props.originalImgID}`)">
           数据概览
           <el-icon class="el-icon--right">
             <ArrowRight/>
