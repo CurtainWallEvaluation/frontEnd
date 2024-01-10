@@ -37,12 +37,13 @@ const router = createRouter({
       props: true,
     },
     {
-      path: '/oriImageDataView',
+      path: '/oriImageDataView/:taskID/:originalImgID',
       name: 'oriImageDataView',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/DataOverView.vue')
+      component: () => import('../views/DataOverView.vue'),
+      props: true,
     },
     {
       path: '/task/:taskID',
