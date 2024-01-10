@@ -4,9 +4,9 @@ import axios from 'axios';
 import {ElLoading, ElMessage} from "element-plus";
 
 const overallPiechartEvaluationData = {
-  good: 1,
-  qualified: 1,
-  unqualified: 1,
+  good: -1,
+  qualified: -1,
+  unqualified: -1,
 }
 
 const storeTableData = {
@@ -22,13 +22,17 @@ const storeTableData = {
 }
 
 const glassHistogramChartData = {
-  explotion: 1,
-  noExplotion: 1
+  explotion: -1,
+  noExplotion: -1
 }
 
 export default {
   props:{
     originalImgID: {
+      type: Number,
+      required: true
+    },
+    taskID:{
       type: Number,
       required: true
     }
@@ -66,7 +70,11 @@ export default {
   methods: {
     back(){
       this.$router.push({
-        name: 'oriImageDetail'
+        name: 'oriImageDetail',
+        params:{
+          taskID:this.taskID,
+          originalImgID:this.originalImgID
+        }
       })
     },
     async getOverallData(){
@@ -79,6 +87,7 @@ export default {
         const res = await axios({
           url,
         })
+        console.log(res)
         overallPiechartEvaluationData.good = res.data.data.goodNum;
         overallPiechartEvaluationData.qualified = res.data.data.qualNum;
         overallPiechartEvaluationData.unqualified = res.data.data.uqualNum;
@@ -251,9 +260,9 @@ export default {
             )
           } else {
             // 不合格
-            this.storeTableData.num_unqualified++
-            this.storeTableData.crack_square_unqualified += item.crackAreaProportion
-            this.storeTableData.dirt_cent_unqualified = Math.max(
+            storeTableData.num_unqualified++
+            storeTableData.crack_square_unqualified += item.crackAreaProportion
+            storeTableData.dirt_cent_unqualified = Math.max(
                 storeTableData.dirt_cent_unqualified,
                 item.stainAreaProportion
             )
@@ -378,15 +387,15 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 80px;
-  background-color:#CCF6FF;
+  flex-basis: 5%;
+  background: #CCF6FF;
   margin-bottom: 20px;
 }
 
 .backButton {
   background-color: #D9D9D9;
   border-radius: 15px;
-  width: 120px;
+  width: 90px;
   height: 50px;
   padding: 5px 10px;
   margin-left: 50px;
