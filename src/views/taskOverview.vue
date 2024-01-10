@@ -525,6 +525,7 @@ main {
   transition: box-shadow 0.3s;
 
   & .imageContainer {
+    position: relative;
     flex-grow: 1;
   }
 
@@ -538,7 +539,13 @@ main {
 }
 
 .infoCard .el-image {
-  opacity: 0.8;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  opacity: 0.5;
 }
 
 .infoCard:hover {

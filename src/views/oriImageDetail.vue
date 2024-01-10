@@ -369,7 +369,7 @@ main {
   flex-direction: column;
   height: 100vh;
 
-  background: antiquewhite;
+  background: white;
 }
 
 #topBar {
