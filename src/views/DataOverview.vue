@@ -207,8 +207,8 @@ export default {
                 normal:{
                   color:function(params){
                     let colorList=[
-                      "#82FD63",
-                      "#FD6C63"
+                      "#FD6C63",
+                      "#82FD63"
                     ]
                     return colorList[params.dataIndex]
                   }
