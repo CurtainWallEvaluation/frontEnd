@@ -38,6 +38,15 @@ export default {
     }
   },
   mounted(){
+    storeTableData.num_good = 0;
+    storeTableData.num_qualified = 0;
+    storeTableData.num_unqualified = 0;
+    storeTableData.crack_square_good = 0;
+    storeTableData.crack_square_qualified = 0;
+    storeTableData.crack_square_unqualified = 0;
+    storeTableData.dirt_cent_good = 0;
+    storeTableData.dirt_cent_qualified = 0;
+    storeTableData.dirt_cent_unqualified = 0;
     this.getOverallData()
     this.getGlassData()
     this.getStoneData()
