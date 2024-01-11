@@ -217,7 +217,7 @@ watch(dialogVisible, (newValue) => {
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
 }
 
 #selector {

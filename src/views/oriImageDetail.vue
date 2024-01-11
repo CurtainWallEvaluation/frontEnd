@@ -275,7 +275,8 @@ function sideDiaChange(newIndex, event) {
         <el-button color="#E5E5B0" type="primary" :icon="ArrowLeftBold" @click="router.push(`/task/${props.taskID}`)">
           返回
         </el-button>
-        <el-button color="#E5E5B0" type="primary" @click="router.push(`/oriImageDataView/${props.taskID}/${props.originalImgID}`)">
+        <el-button color="#E5E5B0" type="primary"
+                   @click="router.push(`/oriImageDataView/${props.taskID}/${props.originalImgID}`)">
           数据概览
           <el-icon class="el-icon--right">
             <ArrowRight/>
@@ -316,23 +317,47 @@ function sideDiaChange(newIndex, event) {
           <el-tag v-else-if="currentData.status === 1 && sideDiaStatus" type="warning" size="large">合格</el-tag>
           <el-tag v-else-if="sideDiaStatus" type="danger" size="large">异常</el-tag>
         </h1>
+        <p v-if="currentData.type !== 'glass'" style="color: rgba(128,128,128,0.78)">韧性分数：{{
+            currentData.point
+          }}</p>
+        <p v-else style="color: rgba(128,128,128,0.78)">韧性分数：{{ currentData.status ? '0' : '1' }}</p>
         <div v-if="currentData.type === 'glass'" class="DetailInfo" id="glassInfo">
           <p>内爆：{{ currentData.isImplosion ? '是' : '否' }}</p>
         </div>
         <div v-else class="DetailInfo" id="wallInfo">
           <div id="fissureInfo">
             <p>裂缝条数：{{ 1 }}</p>
-            <p>裂缝面积占比：{{ currentData.crackAreaProportion }}</p>
-            <p>裂缝长度平方占比：{{ currentData.lengthCaculate }}</p>
-            <p>裂缝平均宽度平方面积比：{{ currentData.widthCaculate }}</p>
+            <el-tooltip class="box-item"
+                        effect="light"
+                        content="裂缝像素与图像像素的比值"
+                        placement="bottom">
+              <p>裂缝面积占比：{{ currentData.crackAreaProportion }}</p>
+            </el-tooltip>
+            <el-tooltip class="box-item"
+                        effect="light"
+                        content="裂缝像素长度平方与图像像素的比值"
+                        placement="bottom">
+              <p>裂缝长度平方占比：{{ currentData.lengthCaculate }}</p>
+            </el-tooltip>
+            <el-tooltip class="box-item"
+                        effect="light"
+                        content="裂缝像素平均像素宽度平方与图像像素的比值"
+                        placement="bottom">
+              <p>裂缝平均宽度平方面积比：{{ currentData.widthCaculate }}</p>
+            </el-tooltip>
           </div>
           <div id="stainInfo">
-            <p>污渍面积占比：{{ currentData.stainAreaProportion }}</p>
+            <el-tooltip class="box-item"
+                        effect="light"
+                        content="污渍像素个数与图像像素的比值"
+                        placement="bottom">
+              <p>污渍面积占比：{{ currentData.stainAreaProportion }}</p>
+            </el-tooltip>
             <el-tooltip class="box-item"
                         effect="light"
                         content="污渍部分平均每个像素点和非污渍部分的像素点灰度值差值"
                         placement="bottom">
-              <p>污渍色差：{{ currentData.stainColorDiffer }}</p>
+              <p>污渍色差*：{{ currentData.stainColorDiffer }}</p>
             </el-tooltip>
           </div>
         </div>
@@ -419,6 +444,7 @@ main {
 
 #imgContainer {
   //background: red;
+  max-height: 50vh;
 
   & .image-slot {
     display: flex;

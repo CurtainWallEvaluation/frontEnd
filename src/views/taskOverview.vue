@@ -471,6 +471,7 @@ main {
   margin: 0 30px 0 30px;
   display: flex;
   flex-direction: column;
+  justify-content: start;
   box-sizing: border-box;
 
   flex-grow: 1;

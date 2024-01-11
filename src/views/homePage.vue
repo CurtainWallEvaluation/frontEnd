@@ -52,9 +52,6 @@ const confirmPasswordValidator = (rule, value, cb) => {
 
 function confirmClickHandler() {
   modifyLoading.value = true;
-  // TODO：点击确认后向后端进行个人数据的修改
-
-
   // 测试修改用户时候的按钮更新
   setTimeout(() => {
     modifyLoading.value = false;
@@ -66,8 +63,9 @@ function confirmClickHandler() {
     })
   }, 2000)
 
-  // TODO：更新currentUserInfo中的信息
+  // 更新currentUserInfo中的信息
   currentUserInfo.name = nProfileInfoForm.name;
+  localStorage.setItem('name', nProfileInfoForm.name);
 }
 
 // 管理用户信息更改时候弹框退出
@@ -131,7 +129,7 @@ function dialogCloseHandler(done) {
           }">
           <el-input
               v-model="nProfileInfoForm.name"
-              placeholder="请输入要注册的用户名"
+              placeholder="请输入要修改的用户名"
               @change="hasChanged=true"
           />
         </el-form-item>
@@ -180,6 +178,9 @@ function dialogCloseHandler(done) {
 main {
   display: flex;
   flex-direction: column;
+
+  height: 100vh;
+  width: 100vw;
 }
 
 #LOGO {
@@ -203,5 +204,12 @@ main {
   display: flex;
   margin: auto 0;
   font-size: xx-large;
+}
+
+#content {
+  background: linear-gradient(to bottom right, lightblue, 50%, whitesmoke);
+
+  flex-grow: 1;
+  height: 100%;
 }
 </style>
