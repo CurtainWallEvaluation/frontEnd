@@ -200,6 +200,7 @@ function handleSizeChange(newSize) {
   linesCount.value = Math.ceil(Math.min(newSize / lineSize.value, displayData.length / lineSize.value));
   currentPage.value = 1;
   pageSize.value = newSize;
+  handlePageChange(1);
 
   console.log(linesCount);
 }
@@ -333,7 +334,7 @@ function sideDiaChange(newIndex, event) {
         </div>
         <div v-else class="DetailInfo" id="wallInfo">
           <div id="fissureInfo">
-            <p>裂缝条数：{{ 1 }}</p>
+            <p>裂缝条数：{{ currentData.crackNum }}</p>
             <el-tooltip class="box-item"
                         effect="light"
                         content="裂缝像素与图像像素的比值"

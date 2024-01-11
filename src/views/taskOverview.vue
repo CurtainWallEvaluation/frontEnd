@@ -171,8 +171,13 @@ watch(dangerOnly, (newValue, oldValue) => {
         .then((res) => {
           console.log(res);
           displayData.value = res.data.data;
+          total.value = displayData.value.length;
+          // linesCount.value = Math.ceil(Math.min(lineSize.value, displayData.value.length / lineSize.value));
+          console.log(linesCount.value);
+          console.log(displayData.value);
 
           loading.close();
+          handlePageChange(1);
           ElMessage({
             message: '数据加载成功',
             type: 'success',
@@ -202,7 +207,10 @@ watch(dangerOnly, (newValue, oldValue) => {
         .then((res) => {
           console.log(res);
           displayData.value = res.data.data;
+          total.value = displayData.value.length;
+          linesCount.value = Math.ceil(Math.min(lineSize.value, displayData.value.length / lineSize.value));
 
+          handlePageChange(1);
           loading.close();
         })
         .catch((error) => {
@@ -226,12 +234,17 @@ function handlePageChange(newPage) {
 
   if (dangerOnly.value) {
     // 前端分页
+    console.log('test');
+    console.log(pageSize.value);
     currentPage.value = newPage;
-    baseCount.value = (newPage - 1) * pageSize
+    baseCount.value = (newPage - 1) * pageSize.value
+    linesCount.value = Math.ceil(Math.min(linesCount.value, displayData.value.slice(baseCount.value, baseCount.value + pageSize.value).length / lineSize.value));
+    console.log(linesCount.value);
     loading.close();
 
   } else {
     // 向数据库更新数据（后端分页）
+    baseCount.value = 0;
     instance.proxy.$axios.get('/task/getImgByPage',
         {
           params: {
@@ -264,6 +277,7 @@ function handleSizeChange(newSize) {
   pageSize.value = newSize;
 
   console.log(displayData.value);
+  console.log(displayData.value.slice(0, 1));
   console.log(lineSize.value);
   console.log(linesCount.value);
   console.log(newSize);
@@ -346,7 +360,7 @@ watch(taskInfoDialogStatus, (newValue) => {
         </div>
       </template>
       <div id="dialogContent" ref="container">
-        <!--        TODO: 弹窗中的图表-->
+        <!--弹窗中的图表-->
       </div>
       <div ref="test">
 
