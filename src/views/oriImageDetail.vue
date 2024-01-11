@@ -187,10 +187,12 @@ onMounted(() => {
 const currentPage = ref(0)
 const total = ref(0)
 const pageSize = ref(10)
+const baseCount = ref(0);
 
 function handlePageChange(newPage) {
   // 前端分页
   currentPage.value = newPage;
+  baseCount.value = (newPage - 1) * pageSize.value;
 }
 
 function handleSizeChange(newSize) {
@@ -289,7 +291,7 @@ function sideDiaChange(newIndex, event) {
         <el-scrollbar>
           <el-row :gutter="10" justify="start" v-for="i in linesCount">
             <el-col
-                v-for="(curtainInfo, index) in displayData.slice((i - 1) * lineSize, i * lineSize)"
+                v-for="(curtainInfo, index) in displayData.slice(baseCount + (i - 1) * lineSize,baseCount + i * lineSize)"
                 :key="index + (i - 1) * lineSize"
                 :span="4"
             >
@@ -317,10 +319,15 @@ function sideDiaChange(newIndex, event) {
           <el-tag v-else-if="currentData.status === 1 && sideDiaStatus" type="warning" size="large">合格</el-tag>
           <el-tag v-else-if="sideDiaStatus" type="danger" size="large">异常</el-tag>
         </h1>
-        <p v-if="currentData.type !== 'glass'" style="color: rgba(128,128,128,0.78)">韧性分数：{{
-            currentData.point
-          }}</p>
-        <p v-else style="color: rgba(128,128,128,0.78)">韧性分数：{{ currentData.status ? '0' : '1' }}</p>
+        <el-tooltip class="box-item"
+                    effect="light"
+                    content="韧性分数大于等于0.8为良好，小于0.6为异常，其余为合格"
+                    placement="left-end">
+          <p v-if="currentData.type !== 'glass'" style="color: rgba(128,128,128,0.78)">韧性分数：{{
+              currentData.point
+            }}</p>
+          <p v-else style="color: rgba(128,128,128,0.78)">韧性分数：{{ currentData.status ? '0' : '1' }}</p>
+        </el-tooltip>
         <div v-if="currentData.type === 'glass'" class="DetailInfo" id="glassInfo">
           <p>内爆：{{ currentData.isImplosion ? '是' : '否' }}</p>
         </div>
@@ -393,8 +400,6 @@ main {
   display: flex;
   flex-direction: column;
   height: 100vh;
-
-  background: antiquewhite;
 }
 
 #topBar {
